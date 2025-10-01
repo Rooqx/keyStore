@@ -18,4 +18,12 @@ for (const file of envFiles) {
 }
 
 // Export all required environment variables
-export const { PORT, NODE_ENV: ENV, MONGO_URI } = process.env;
+export const {
+  PORT,
+  NODE_ENV: ENV,
+  MONGO_URI,
+  ACCESS_TOKEN_SECRET,
+  ACCESS_TOKEN_EXPIRES_IN,
+  REFRESH_TOKEN_SECRET,
+  REFRESH_TOKEN_EXPIRES_IN,
+} = process.env;

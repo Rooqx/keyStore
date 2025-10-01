@@ -1,11 +1,17 @@
 import { Router } from "express";
+import { KeyController } from "../controllers/key.controller";
 
 const keyRouter = Router();
-
-keyRouter.post("/", (req, res) => {
-  res.send("signup");
-});
+const newKey = new KeyController();
+keyRouter.post("/getresponse", newKey.addGetResponseKey);
+keyRouter.post("/mailchimp", newKey.addMailchimpKey);
 keyRouter.get("/", (_req, res) => {
+  res.send("get all user Keys");
+});
+keyRouter.get("/getresponse", (_req, res) => {
+  res.send("get all user Keys");
+});
+keyRouter.get("/mailchimp", (_req, res) => {
   res.send("get all user Keys");
 });
 keyRouter.get("/:id", (_req, res) => {

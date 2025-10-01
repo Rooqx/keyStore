@@ -1,9 +1,16 @@
 // controllers/AuthController.ts
 import type { Request, Response, NextFunction } from "express";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import jwt, { type Secret, type SignOptions } from "jsonwebtoken";
 import { ResponseHelper } from "../utils/responseHelper";
-import { asyncHandler, AppError } from "../middleware/errorHandler";
+import { asyncHandler, AppError } from "../middlewares/error.middleware";
+import {
+  ACCESS_TOKEN_EXPIRES_IN,
+  ACCESS_TOKEN_SECRET,
+  REFRESH_TOKEN_EXPIRES_IN,
+  REFRESH_TOKEN_SECRET,
+} from "../configs/env.configs";
+import User from "../models/user.model";
 
 /**
  * - Only: register (signup), login, logout
@@ -16,8 +23,6 @@ export class AuthController {
     if (!user) return null;
     const obj = user.toObject ? user.toObject() : { ...user };
     delete obj.password;
-    delete obj.resetPasswordToken;
-    delete obj.resetPasswordExpires;
     return obj;
   }
 
@@ -37,14 +42,14 @@ export class AuthController {
 
   // helper: sign JWTs (self-contained so this works in an assessment)
   private signAccessToken(payload: object) {
-    const secret = process.env.ACCESS_TOKEN_SECRET || "access-secret";
-    const expiresIn = process.env.ACCESS_TOKEN_EXPIRES_IN || "15m";
+    const secret = ACCESS_TOKEN_SECRET as Secret;
+    const expiresIn = ACCESS_TOKEN_EXPIRES_IN as SignOptions["expiresIn"];
     return jwt.sign(payload, secret, { expiresIn });
   }
 
   private signRefreshToken(payload: object) {
-    const secret = process.env.REFRESH_TOKEN_SECRET || "refresh-secret";
-    const expiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN || "7d";
+    const secret = REFRESH_TOKEN_SECRET as Secret;
+    const expiresIn = REFRESH_TOKEN_EXPIRES_IN as SignOptions["expiresIn"];
     return jwt.sign(payload, secret, { expiresIn });
   }
 
@@ -62,16 +67,7 @@ export class AuthController {
         throw new AppError("Email and password are required", 400);
       }
 
-      // Replace with your real model/service
-      const UserModel = req.app.locals.userModel as any;
-      if (!UserModel) {
-        throw new AppError(
-          "User model not available on app.locals.userModel",
-          500
-        );
-      }
-
-      const existing = await UserModel.findOne({ email });
+      const existing = await User.findOne({ email });
       if (existing) {
         throw new AppError("Account with this email already exists", 409);
       }
@@ -79,7 +75,7 @@ export class AuthController {
       const saltRounds = Number(12);
       const hashed = await bcrypt.hash(password, saltRounds);
 
-      const created = await UserModel.create({
+      const created = await User.create({
         email,
         name,
         password: hashed,
@@ -103,12 +99,7 @@ export class AuthController {
         throw new AppError("Email and password are required", 400);
       }
 
-      const UserModel = req.app.locals.userModel as any;
-      if (!UserModel) {
-        throw new AppError("User model not available", 500);
-      }
-
-      const user = await UserModel.findOne({ email });
+      const user = await User.findOne({ email });
       if (!user) {
         throw new AppError("Invalid credentials", 401);
       }

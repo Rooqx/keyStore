@@ -12,20 +12,21 @@ const app = express();
 
 //Middlewares
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
 app.use(errorHandler);
 
 app.get("/", (_req, res) => {
+  console.log("server hit");
   res.send("Hello from Server (Express + TS) 👋");
 });
 
 //API Routes
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/keys", keyRouter);
+app.use("/api/v1/integrations", keyRouter);
 
-Job.getRemoteOkJobs();
 app.listen(PORT, async () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
   await connectToMongo();

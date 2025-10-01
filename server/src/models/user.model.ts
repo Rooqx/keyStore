@@ -11,7 +11,12 @@ import Key from "./key.model";
 
 const userSchema = new mongoose.Schema(
   {
-    username: { type: String, required: true, index: true }, // added index for fast queries
+    username: {
+      type: String,
+      required: true,
+      index: true,
+      default: "new user",
+    }, // added index for fast queries
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true, minlength: 6 },
   },
