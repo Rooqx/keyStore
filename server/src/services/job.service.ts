@@ -1,6 +1,6 @@
 import axios from "axios";
 // a
-//            "sps",
+//
 //
 //
 //https://remotive.com/api/remote-jobs this
@@ -17,7 +17,7 @@ class Job {
         },
       });
       console.log(res.statusText);*/
-      // return res.data; // return just the job data caf5c8a29e40a997b05124e1ea68c445-us19
+      // return res.data; // return just the job data
     } catch (err: unknown) {
       console.error("Failed to fetch:", (err as unknown).message);
       return null;
