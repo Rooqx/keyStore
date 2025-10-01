@@ -1,8 +1,4 @@
 import axios from "axios";
-// a
-//
-//
-//
 //https://remotive.com/api/remote-jobs this
 //https://remoteok.com/api
 //https://himalayas.app/jobs/api  this
@@ -17,7 +13,7 @@ class Job {
         },
       });
       console.log(res.statusText);*/
-      // return res.data; // return just the job data
+      // return res.data;
     } catch (err: unknown) {
       console.error("Failed to fetch:", (err as unknown).message);
       return null;
