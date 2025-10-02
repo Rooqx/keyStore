@@ -15,7 +15,7 @@
 
 ### How to Run Locally
 
-This project uses **Bun** as the package manager (not NPM).
+This project uses **Bun** as the package manager (not npm).
 
 #### 📦 Install Bun
 
@@ -141,3 +141,5 @@ Environment: development
 #### 8. **Get All Stored Keys**
 
 - **GET** `http://localhost:4000/api/v1/integrations`
+
+"NOTE: RATELIMTING; IF YOU SPAM THE ANY OF THE ENDPOINT FOR 5 TIMES STARIGHT YOU WILL GET 429 ERROR"
