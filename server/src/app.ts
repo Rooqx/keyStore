@@ -18,7 +18,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser()); // to parse cookies from requests
 app.use(cors());
-app.use(errorHandler);
 app.use(arcjetMiddleware); // Apply Arcjet middleware globally
 app.get("/", (_req, res) => {
   console.log("server hit");
@@ -30,6 +29,9 @@ const test = new KeyController();
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/integrations", keyRouter);
+
+// Global error handler
+app.use(errorHandler);
 
 app.listen(PORT, async () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
