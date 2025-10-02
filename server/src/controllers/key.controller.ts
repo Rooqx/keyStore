@@ -160,7 +160,7 @@ export class KeyController {
           "Audiences fetched"
         );
       } catch (err: any) {
-        next(err); //calls the err middleware
+        next(err); //calls the err middlewar
       }
     }
   );

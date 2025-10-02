@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "@arcjet/bun": "^1.0.0-beta.12",
     "@arcjet/inspect": "^1.0.0-beta.12",
     "@arcjet/node": "^1.0.0-beta.12",
     "@types/bcrypt": "^6.0.0",
@@ -18,7 +17,6 @@
     "mongoose": "^8.18.1",
     "morgan": "^1.10.1",
     "nodemon": "^3.1.10",
-    "redis": "^5.8.2",
     "zod": "^4.1.11"
   },
   "devDependencies": {

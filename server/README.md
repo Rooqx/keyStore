@@ -120,6 +120,8 @@ Environment: development
 
 ### 🔑 Routes & Usage (Detailed)
 
+👉 No need to manually add tokens to headers — cookies handle authentication.
+
 #### 1. **Signup**
 
 - **POST** `http://localhost:4000/api/v1/auth/signup`
@@ -163,7 +165,6 @@ Environment: development
     "key": "your-api-key"
   }
   ```
-  👉 No need to manually add tokens to headers — cookies handle authentication.
 
 #### 5. **Get Mailchimp Contacts (by key id) get keys id endpoint at the No. 8**
 

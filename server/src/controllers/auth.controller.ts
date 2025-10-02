@@ -35,7 +35,7 @@ export class AuthController {
       secure: isProd, // only send over HTTPS in production
       sameSite: "lax" as "lax" | "strict" | "none",
       path: "/",
-      maxAge: 1000 * 60 * 15, // 15 minutes
+      maxAge: 1000 * 60 * 50, // 50 minutes
     };
   }
   // cookie options for refresh token

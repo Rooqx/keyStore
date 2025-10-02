@@ -10,7 +10,7 @@ const arcjetMiddleware = async (
 ) => {
   try {
     //
-    const decision = await aj.protect(req as any, { requested: 2 });
+    const decision = await aj.protect(req as any, { requested: 3 });
     // console.log("Arcjet Decision:", decision); // Debugging
 
     if (decision.isDenied()) {
