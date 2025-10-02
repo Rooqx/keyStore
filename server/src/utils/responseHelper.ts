@@ -1,4 +1,3 @@
-
 import type { Response } from "express";
 
 interface SuccessResponse<T = any> {

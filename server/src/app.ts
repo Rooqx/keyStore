@@ -4,10 +4,11 @@ import cookieParser from "cookie-parser";
 import { errorHandler } from "./middlewares/error.middleware";
 import { ENV, PORT } from "./configs/env.configs";
 import { connectToMongo } from "./db/mongo";
-import Job from "./services/job.service";
 import authRouter from "./routers/auth.router";
 import userRouter from "./routers/user.router";
 import keyRouter from "./routers/key.router";
+import { KeyController } from "./controllers/key.controller";
+import { getMailchimpListId } from "./middlewares/getListId.middleware";
 const app = express();
 
 //Middlewares
@@ -21,7 +22,8 @@ app.get("/", (_req, res) => {
   console.log("server hit");
   res.send("Hello from Server (Express + TS) 👋");
 });
-
+const test = new KeyController();
+//test.getMailchimpAudiences();
 //API Routes
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/auth", authRouter);
