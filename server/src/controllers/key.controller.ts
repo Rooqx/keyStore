@@ -3,12 +3,30 @@ import type { NextFunction, Request, Response } from "express";
 import Key from "../models/key.model";
 import { ResponseHelper } from "../utils/responseHelper";
 import axios from "axios";
+/**
+ * - addMailchimpKey
+ * - addGetResponseKey
+ * - getMailchimpAudiences
+ * - getResponseAudiences
+ * - getAllAudiences
+ */
 export class KeyController {
+  //Func to add mailchimpKey only
   public addMailchimpKey = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
+      //Getting name and key from request body
       const { name, key } = req.body;
       if (!key) throw new AppError("Key field empty", 400);
+
+      //Get User id from the authMiddleware
+      const userId = req.user?.sub; //sub is the standard claim for subject (user id)
+      if (!userId) {
+        throw new AppError("User Id missing", 404);
+      }
+
+      //Validate Key before saving
       try {
+        //Make a test request to mailchimp to validate the key
         const response = await axios.get(
           "https://us19.api.mailchimp.com/3.0/lists",
           {
@@ -18,46 +36,72 @@ export class KeyController {
             validateStatus: () => true,
           }
         );
-        console.log(response.statusText);
+        //console.log(response.statusText);
         if (response.status !== 200) {
           throw new AppError("The key you added is invalid", 400);
         }
+        //Add key to the data base
         const newKey = await Key.create({
           name,
           key,
           provider: "mailchimp",
-          // userId: req.user?._id,
+          userId: userId,
         });
-
+        //Return response
         return ResponseHelper.created(res, { key: newKey }, "Key added");
       } catch (err: any) {
         next(err);
       }
     }
   );
+  //Func to add getresponse key only
   public addGetResponseKey = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const { name, key } = req.body;
+      const { name, key } = req.body; //Getting name and key from request body
       if (!key) throw new AppError("Key field empty", 400);
+
+      //Get User id from the authMiddleware
+      const userId = req.user?.sub; //sub is the standard claim for subject (user id)
+
+      //console.log("userId:", userId);
+      if (!userId) {
+        throw new AppError("User Id missing", 404);
+      }
+
+      //Validate Key before saving
       try {
+        //Make a test request to getresponse to validate the key
+        //If the key is invalid it will return 401
+        //If the key is valid it will return 200 with the contacts data
+        //So we can use this to validate the key
+        //So we don't have to worry about that case
+        //Also we use validateStatus to prevent axios from throwing an error for non-200 status codes
+        //So that we can handle it ourselves
+        //This is important because getresponse returns 401 for invalid keys which would throw an error in axios
+        //And we want to catch that and return our own error message
+        //Instead of letting axios throw a generic error
+        //This way we can provide a better user experience
         const response = await axios.get(
           "https://api.getresponse.com/v3/contacts",
           {
             headers: {
               "X-Auth-Token": `api-key ${key}`,
             },
-            validateStatus: () => true,
+            validateStatus: () => true, // prevent axios from auto throwing errors
           }
         );
         console.log(response.statusText);
+        //Check the status to know if the key is valid
         if (response.status !== 200) {
           throw new AppError("The key you added is invalid", 400);
         }
+
+        //Add key to the data base
         const newKey = await Key.create({
           name,
           key,
           provider: "getresponse",
-          // userId: req.user?._id,
+          userId: userId,
         });
 
         return ResponseHelper.created(res, { key: newKey }, "Key added");
@@ -66,56 +110,60 @@ export class KeyController {
       }
     }
   );
-  //get mailchimp audiences
+
+  //Get all mailchimp audiences "ONLY!"
   public getMailchimpAudiences = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       try {
+        //Get list id and key from the prev middleware
         const list_id = req.list_id;
         const key = req.key;
         // console.log("list_id:", list_id);
 
+        //Response to get all members in a list
         const response = await axios.get(
           `https://us19.api.mailchimp.com/3.0/lists/${list_id}/members`,
           {
             headers: {
               Authorization: `Bearer ${key}`,
             },
-            validateStatus: () => true,
           }
         );
-        //console.log(response.data);
-        if (response.status !== 200) {
-          throw new AppError("The key you added is invalid", 400);
-        }
+
+        //Sanitized the response data to just only (id, email, fullname)
         const members = response.data.members.map((m: any) => ({
           id: m.id,
           email_address: m.email_address,
           unique_email_id: m.unique_email_id,
           full_name: m.full_name,
         }));
-        // const audiences = response.data;
+
+        //Return response
         return ResponseHelper.success(
           res,
           { audiences: members },
           "Audiences fetched"
         );
       } catch (err: any) {
-        next(err);
+        next(err); //calls the err middleware
       }
     }
   );
-  //get mailchimp audiences
+  //Get all getresponse audiences "ONLY!"
   public getResponseAudiences = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       try {
+        //get key id from the params so as to get the  get the key value from the db
         const keyId = req.params.id;
-
         const key = await Key.findById(keyId);
 
+        //checking if key is present
         if (!key) {
           throw new AppError("Key not found", 404);
         }
-        console.log("key:", key);
+        // console.log("key:", key);
+
+        //extract the key value
         const keyValue = key.key as string;
         const response = await axios.get(
           "https://api.getresponse.com/v3/contacts",
@@ -123,15 +171,10 @@ export class KeyController {
             headers: {
               "X-Auth-Token": `api-key ${keyValue}`,
             },
-            validateStatus: () => true,
           }
         );
-        console.log(response.data);
-        if (response.status !== 200) {
-          throw new AppError("The key you added is invalid", 400);
-        }
 
-        // const audiences = response.data;
+        //Sanitized the response data to just only (id, email, fullname)
         const contacts = response.data.map((c: any) => ({
           id: c.contactId,
           name: c.name,
@@ -148,29 +191,37 @@ export class KeyController {
       }
     }
   );
+
+  //This is to get all the audiences all together both mailchimp and getresponse
   public getAllAudiences = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       try {
+        //Get all the key
         const keys = await Key.find();
         if (!keys || keys.length === 0) {
+          //Validating
           throw new AppError("No keys found", 404);
         }
 
+        /*
         console.log(
           "Found keys:",
           keys.map((k) => ({ id: k._id, provider: k.provider }))
-        );
+        );*/
 
+        //Fetch audiences from all keys in parallel
         const results = await Promise.all(
           keys.map(async (keyDoc: any) => {
-            const provider = String(keyDoc.provider || "").toLowerCase();
-            const apiKey = String(keyDoc.key || "");
+            const provider = String(keyDoc.provider || "").toLowerCase(); // normalize
+            const apiKey = String(keyDoc.key || ""); // ensure it's a string
 
+            //Basic validation
             if (!apiKey) {
               console.warn("Key missing for keyDoc:", keyDoc._id);
               return [];
             }
 
+            //Check which provider it is to know the url to use
             if (provider === "mailchimp") {
               try {
                 const base = "https://us19.api.mailchimp.com/3.0"; // keep as you use
@@ -221,12 +272,13 @@ export class KeyController {
                       );
                       return [];
                     }
-
+                    //Extract only the fields we need
                     const members = membersRes.data.members || [];
                     console.log(
                       `list ${list.id} members count:`,
                       members.length
                     );
+                    //Map the members to a simplified format
                     return members.map((m: any) => ({
                       provider: "mailchimp",
                       providerListId: list.id,
@@ -238,7 +290,7 @@ export class KeyController {
                   })
                 );
 
-                return membersArrays.flat();
+                return membersArrays.flat(); // flatten the array of arrays
               } catch (err: any) {
                 console.error(
                   "Mailchimp error for key",

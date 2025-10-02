@@ -8,6 +8,7 @@ import {
   ACCESS_TOKEN_EXPIRES_IN,
   ACCESS_TOKEN_SECRET,
   REFRESH_TOKEN_EXPIRES_IN,
+  REFRESH_TOKEN_EXPIRES_MS,
   REFRESH_TOKEN_SECRET,
 } from "../configs/env.configs";
 import User from "../models/user.model";
@@ -15,7 +16,7 @@ import User from "../models/user.model";
 /**
  * - Only: register (signup), login, logout
  * - Uses bcrypt for password hashing
- * - Issues an access token (returned in JSON) and a refresh token (HttpOnly cookie)
+ * - Issues an access token (returned in JSON) and a refresh token (HttpOnly co run devokie)
  */
 export class AuthController {
   // helper: remove sensitive fields before sending user object
@@ -26,11 +27,21 @@ export class AuthController {
     return obj;
   }
 
+  // cookie options for access token (short-lived)
+  private getAccessCookieOpts() {
+    const isProd = process.env.NODE_ENV === "production";
+    return {
+      httpOnly: true, // JS on frontend cannot access it
+      secure: isProd, // only send over HTTPS in production
+      sameSite: "lax" as "lax" | "strict" | "none",
+      path: "/",
+      maxAge: 1000 * 60 * 15, // 15 minutes
+    };
+  }
   // cookie options for refresh token
   private getRefreshCookieOpts() {
     const isProd = process.env.NODE_ENV === "production";
-    const maxAge =
-      Number(process.env.REFRESH_TOKEN_EXPIRES_MS) || 7 * 24 * 60 * 60 * 1000; // default 7 days in ms
+    const maxAge = Number(REFRESH_TOKEN_EXPIRES_MS); // default 7 days in ms
     return {
       httpOnly: true,
       secure: isProd,
@@ -62,7 +73,6 @@ export class AuthController {
   public register = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const { email, password, name } = req.body;
-
       if (!email || !password) {
         throw new AppError("Email and password are required", 400);
       }
@@ -103,7 +113,10 @@ export class AuthController {
       if (!user) {
         throw new AppError("Invalid credentials", 401);
       }
+      // console.log("User found:", user);
 
+      // compare password with hashed password
+      //  console.log("Comparing passwords");
       const ok = await bcrypt.compare(password, user.password);
       if (!ok) {
         throw new AppError("Invalid credentials", 401);
@@ -114,15 +127,14 @@ export class AuthController {
       const accessToken = this.signAccessToken(payload);
       const refreshToken = this.signRefreshToken(payload);
 
+      // set access token cookie (short-lived)
+      res.cookie("accessToken", accessToken, this.getAccessCookieOpts());
+
       // set refresh token cookie (httpOnly so client JS can't read it)
       res.cookie("refreshToken", refreshToken, this.getRefreshCookieOpts());
 
       const safe = this.sanitizeUser(user);
-      return ResponseHelper.success(
-        res,
-        { accessToken, user: safe },
-        "Logged in"
-      );
+      return ResponseHelper.success(res, { user: safe }, "Logged in");
     }
   );
 

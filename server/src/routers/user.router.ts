@@ -2,14 +2,11 @@ import { Router } from "express";
 
 const userRouter = Router();
 
-userRouter.post("/", (req, res) => {
-  res.send("signup");
-});
 userRouter.get("/", (_req, res) => {
-  res.send("get all user Keys");
+  res.send("get all user ");
 });
 userRouter.get("/:id", (_req, res) => {
-  res.send("get all user Keys");
+  res.send("get a user");
 });
 userRouter.put("/:id", (_req, res) => {
   res.send("update a key");

@@ -1,13 +1,21 @@
 // middlewares/auth.middleware.ts
 import type { JwtPayload, Secret } from "jsonwebtoken";
 import type { NextFunction, Response, Request } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { TokenExpiredError } from "jsonwebtoken";
 import { AppError } from "./error.middleware";
 import { ACCESS_TOKEN_SECRET } from "../configs/env.configs";
 
-// Extend the Request type to include a user property
 export interface AuthenticatedRequest extends Request {
-  user?: JwtPayload | string; // support string if you ever use jwt.sign with string payload
+  user?: JwtPayload | string;
+}
+
+// (optional) remove global duplicate if you prefer one approach
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+    }
+  }
 }
 
 const authMiddleware = (
@@ -15,23 +23,30 @@ const authMiddleware = (
   _res: Response,
   next: NextFunction
 ) => {
-  // Extract token from httpOnly cookie named "session"
-  const token = req.cookies?.session;
+  // Prefer access token from cookie, fall back to Authorization header
+  //console.log("Auth middleware hit");
+  const token =
+    req.cookies?.accessToken ||
+    (req.headers.authorization?.startsWith("Bearer ")
+      ? req.headers.authorization.split(" ")[1]
+      : undefined);
 
   if (!token) {
     return next(new AppError("Unauthorized - No token provided", 401));
   }
-
+  //console.log("Verifying token:", token);
   try {
     const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET as Secret);
-
-    // attach decoded payload to req.user for downstream controllers
     req.user = decoded as JwtPayload;
-
-    next();
-  } catch (error) {
-    console.error("Error verifying token:", error);
-    return next(new AppError("Unauthorized - Invalid or expired token", 401));
+    return next();
+  } catch (err) {
+    // optional: handle expired token separately
+    if (err instanceof TokenExpiredError) {
+      console.error("Access token expired:", err);
+      return next(new AppError("Unauthorized - Token expired", 401));
+    }
+    console.error("Error verifying token:", err);
+    return next(new AppError("Unauthorized - Invalid token", 401));
   }
 };
 

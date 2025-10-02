@@ -2,10 +2,14 @@ import mongoose from "mongoose";
 
 const keySchema = new mongoose.Schema(
   {
-    name: { type: String, unique: true },
-    key: { type: String },
-    userId: { type: mongoose.Schema.Types.ObjectId }, //  the user who stored the key id
-    provider: ["mailchimp", "getresponse"], // Used enum for easy filtering
+    name: { type: String, index: true }, // optional name for the key
+    key: { type: String, required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, required: true }, //  the user who stored the key id
+    provider: {
+      type: String,
+      enum: ["mailchimp", "getresponse"],
+      required: true,
+    }, // Used enum for easy filtering
   },
   { timestamps: true }
 );
@@ -14,8 +18,8 @@ const keySchema = new mongoose.Schema(
 keySchema.pre("save", async function (next) {
   //Check if the key is new and if the name is empty and then give it the default name
   if (this.isNew && !this.name) {
-    const Key = mongoose.model("Key", keySchema);
-    const count = await Key.countDocuments({ userid: this.userId });
+    const Key = mongoose.models.Key || mongoose.model("Key", keySchema);
+    const count = await Key.countDocuments({ userId: this.userId }); // Count existing keys for the user
     this.name = `${this.provider} key ${count + 1}`; // output should be like mailchimp key 1 or getreponse key 1
   }
   next();
