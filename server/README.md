@@ -1,6 +1,46 @@
 # Backend (Node.js with Bun) Assessment Project
 
-### 🔗 Quick Endpoints Reference
+### 🔗 Quick Endpoints Reference# Port number the server will run on
+
+## ENVIRONMENT VARIABLES
+
+PORT=4000
+
+# Environment (development | production)
+
+NODE_ENV=development
+
+# MongoDB connection string
+
+MONGO_URI="mongodb+srv://test:test@cluster0.xg8uuhh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+
+# Access token secret (JWT)
+
+ACCESS_TOKEN_SECRET=secret
+
+# Access token expiration time
+
+ACCESS_TOKEN_EXPIRES_IN=1h
+
+# Refresh token secret (JWT)
+
+REFRESH_TOKEN_SECRET=supersecret
+
+# Refresh token expiration time
+
+REFRESH_TOKEN_EXPIRES_IN=7d
+
+# Refresh token expiration time in milliseconds
+
+REFRESH_TOKEN_EXPIRES_MS=604800000
+
+# Arcjet API key
+
+ARCJET_KEY=ajkey_01k6jwge4pftfan5yj58p1qsw0
+
+# Arcjet environment
+
+ARCJET_ENV=development
 
 - **POST /api/v1/auth/signup** → Create a new user account
 - **POST /api/v1/auth/signin** → Sign in an existing user
