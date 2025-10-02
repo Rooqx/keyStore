@@ -11,6 +11,21 @@ import axios from "axios";
  * - getAllAudiences
  */
 export class KeyController {
+  //Get all keys
+  //Get all keys from the database
+  public getAllKeys = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const keys = await Key.find();
+        if (!keys || keys.length === 0) {
+          throw new AppError("No keys found", 404);
+        }
+        return ResponseHelper.success(res, { keys }, "All keys fetched");
+      } catch (err: any) {
+        next(err);
+      }
+    }
+  );
   //Func to add mailchimpKey only
   public addMailchimpKey = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {

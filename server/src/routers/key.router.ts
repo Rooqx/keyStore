@@ -35,9 +35,8 @@ keyRouter.get(
   authMiddleware, // To check if the user is authenticated before adding a key
   newKey.getResponseAudiences
 );
-keyRouter.get("/", (_req, res) => {
-  res.send("get all user Keys");
-});
+//GET all keys
+keyRouter.get("/", authMiddleware, newKey.getAllKeys);
 
 //Get all the audiences from all the saved esp; (Both mailchimp and getresponse)
 keyRouter.get(
