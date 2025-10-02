@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { KeyController } from "../controllers/key.controller";
 import { getMailchimpListId } from "../middlewares/getListId.middleware";
-
+//ey routes
 const keyRouter = Router();
 const newKey = new KeyController();
 keyRouter.post("/getresponse", newKey.addGetResponseKey);
@@ -15,14 +15,14 @@ keyRouter.get("/getresponse/:id/lists", newKey.getResponseAudiences);
 keyRouter.get("/", (_req, res) => {
   res.send("get all user Keys");
 });
-//Gett all the audiences from all the saved esp
+//Gett all the audiences from all the saved esg
 keyRouter.get("/esp/lists", newKey.getAllAudiences);
 
 keyRouter.get("/:id", (_req, res) => {
   res.send("get all user Keys");
 });
 keyRouter.put("/:id", (_req, res) => {
-  res.send("update a key");
+  res.send("update key");
 });
 keyRouter.delete("/:id", (_req, res) => {
   res.send("delete a key");
